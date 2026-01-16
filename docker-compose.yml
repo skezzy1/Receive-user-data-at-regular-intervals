@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:17.6
+    container_name: database
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - net
+
+  redis:
+    image: redis:7-alpine
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend
+    restart: unless-stopped
+    command: bash -c "/commands/run_migrations.sh && /commands/run_web_server_dev.sh"
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./app:/app
+    networks:
+      - net
+
+
+volumes:
+  pg_data:
+    name: pg_data
+
+
+networks:
+  net:
+    driver: bridge
