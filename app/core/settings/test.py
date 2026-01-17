@@ -3,7 +3,7 @@ from typing import Optional, ClassVar
 
 from pydantic import EmailStr
 
-from app.core.settings.app import AppSettings
+from core.settings.app import AppSettings
 
 
 class TestAppSettings(AppSettings):

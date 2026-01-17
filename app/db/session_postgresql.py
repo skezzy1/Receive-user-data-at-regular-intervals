@@ -8,17 +8,19 @@ from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
-from app.core.config import get_settings
+from core.config import get_settings
 
 load_dotenv(verbose=True)
 
-USER = quote_plus(os.getenv("POSTGRES_USER", "admin"))
-PASSWORD = os.getenv("POSTGRES_PASSWORD", "Super_Str0ng_Pa$$word")
-HOST = os.getenv("POSTGRES_HOST", "localhost")
-PORT = os.getenv("POSTGRES_PORT", "5432")
-DB_NAME = os.getenv("POSTGRES_DB", "exhibition_db")
+settings = get_settings()
+
+USER = quote_plus(settings.DATABASE_USER)
+PASSWORD = settings.DATABASE_PASSWORD
+HOST = settings.DATABASE_HOST
+PORT = settings.DATABASE_PORT
+DB_NAME = settings.DATABASE_NAME
 DRIVER = "postgresql+asyncpg"
-ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+ENVIRONMENT = os.getenv("ENVIRONMENT")
 
 
 def get_ssl_context() -> Optional[ssl.SSLContext]:

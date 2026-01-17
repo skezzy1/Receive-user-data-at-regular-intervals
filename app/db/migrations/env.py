@@ -6,12 +6,10 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-
 from db.base_model import BaseModel
 from db.session_postgresql import POSTGRESQL_DATABASE_URL
-
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+import users.models
+import company.models
 config = context.config
 
 # Interpret the config file for Python logging.
@@ -21,17 +19,8 @@ if config.config_file_name is not None:
 
 config.set_main_option("sqlalchemy.url", POSTGRESQL_DATABASE_URL)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = BaseModel.metadata
-
-
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
 
 
 def run_migrations_offline() -> None:

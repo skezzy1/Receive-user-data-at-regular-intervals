@@ -31,3 +31,4 @@ class AppSettings(BaseSettings):
 
     BASE_DIR: ClassVar[Path] = Path(__file__).resolve().parent.parent.parent
     DATABASE_DIR: ClassVar[Path] = BASE_DIR / "db"
+    API_URL: str = os.getenv('API_URL')

@@ -2,7 +2,7 @@ import logging
 
 from dotenv import load_dotenv
 
-from app.core.settings.app import AppSettings
+from core.settings.app import AppSettings
 
 load_dotenv()
 

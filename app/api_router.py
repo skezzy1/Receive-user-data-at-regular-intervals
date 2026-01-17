@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-
+from users.views import router as user_router
 
 class ErrorResponse(BaseModel):
     errors: Optional[list[str]]
@@ -30,5 +30,5 @@ api_router = APIRouter(
     },
 )
 
-#api_router.include_router(user_router)
+api_router.include_router(user_router)
 

@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:17.6
-    container_name: database
+    container_name: receive_database
     restart: unless-stopped
     env_file:
       - .env
@@ -16,7 +16,7 @@ services:
       retries: 5
       start_period: 5s
     networks:
-      - net
+      - receive_net
 
   redis:
     image: redis:7-alpine
@@ -25,7 +25,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: backend
+    container_name: receive_backend
     restart: unless-stopped
     command: bash -c "/commands/run_migrations.sh && /commands/run_web_server_dev.sh"
     env_file:
@@ -38,14 +38,14 @@ services:
     volumes:
       - ./app:/app
     networks:
-      - net
+      - receive_net
 
 
 volumes:
   pg_data:
-    name: pg_data
+    name: receive_pg_data
 
 
 networks:
-  net:
+  receive_net:
     driver: bridge
