@@ -1,36 +1,31 @@
-import logging
 import httpx
-from fastapi import HTTPException
-
-from sqlalchemy.ext.asyncio import AsyncSession
+from common.messages import USER_NOT_FOUND
+from common.pagination import CustomPage
 from core.config import get_settings
-from users.repository import UserRepository
-
+from fastapi import HTTPException
 from users.models import UserModel
-
-from users.schemas.users import UserListResponseSchema, CustomPage
-
-logger = logging.getLogger(__name__)
+from users.repository import UserRepository
+from users.schemas.users import UserListResponseSchema
 
 
 class UserService:
-    def __init__(self, db: AsyncSession, repo: UserRepository):
-        self.db = db
+    def __init__(self, repo: UserRepository):
         self.repo = repo
-        self.API_URL: str = get_settings().API_URL
+        self.api_url = get_settings().API_USERS
 
-    async def _get_user_or_404(self, id: int) -> UserModel:
-        user = await self.repo.get_user_by_id(UserModel.id == id)
-        if user is None:
-            raise HTTPException(status_code=404, detail="User not found")
+    async def get_user_or_404(self, user_id: int) -> UserModel:
+        user = await self.repo.get_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail=USER_NOT_FOUND)
         return user
 
-    async def get_user_list_from_api(self) -> CustomPage[UserListResponseSchema]:
+    async def fetch_users_from_api(self) -> list[UserModel]:
         async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.get(self.API_URL)
+            response = await client.get(self.api_url)
             response.raise_for_status()
-            data = response.json()
-            return data
+            return response.json()
 
-    async def get_user_by_id(self, id: int) -> UserModel | None:
-        return await self._get_user_or_404(id)
+    async def get_user_list(
+            self, payload: UserListResponseSchema
+    ) -> CustomPage[UserListResponseSchema]:
+        return await self.repo.get_user_list(payload)

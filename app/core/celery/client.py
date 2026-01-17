@@ -1,10 +1,23 @@
 from celery import Celery
+from celery.schedules import crontab
 
-app = Celery("proj", broker="amqp://", backend="rpc://", include=["app.tasks"])
-
-app.conf.update(
-    result_expires=3600,
+celery_app = Celery(
+    "worker", broker="redis://redis:6379/0", backend="redis://redis:6379/0"
 )
 
-if __name__ == "__main__":
-    app.start()
+celery_app.conf.update(
+    timezone="UTC",
+    task_serializer="json",
+    accept_content=["json"],
+)
+
+celery_app.conf.beat_schedule = {
+    "fetch-users-every-hour": {
+        "task": "app.tasks.fetch_users_task",
+        "schedule": crontab(minute=0, hour="*"),
+    },
+    "fetch-posts-every-30-mins": {
+        "task": "app.tasks.fetch_posts_task",
+        "schedule": crontab(minute="*/30"),
+    },
+}

@@ -8,8 +8,11 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from db.base_model import BaseModel
 from db.session_postgresql import POSTGRESQL_DATABASE_URL
-import users.models
-import company.models
+import users.models  # type: ignore
+import company.models  # type: ignore
+import posts.models  # type: ignore
+import comments.models  # type: ignore
+
 config = context.config
 
 # Interpret the config file for Python logging.

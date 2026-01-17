@@ -1,8 +1,7 @@
 from typing import Annotated
-from app.models import APIModel, ORMResponse
+from models import APIModel, ORMResponse
 from pydantic import Field, EmailStr, ConfigDict
 from pydantic.types import StrictStr
-
 
 PostID = Annotated[int, Field(ge=1)]
 CommentID = Annotated[int, Field(ge=1)]

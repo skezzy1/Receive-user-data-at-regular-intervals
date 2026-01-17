@@ -1,13 +1,6 @@
-from models import APIModel, ORMResponse
-from typing import Annotated
-from pydantic import Field, ConfigDict
-from pydantic.types import StrictStr
 from common.validations import IDValidation
-
-LengthValidation = Annotated[
-    StrictStr,
-    Field(min_length=1, max_length=225, pattern=r"^[A-Za-z]+(?:[ '-]?[A-Za-z]+)*$"),
-]
+from models import APIModel, ORMResponse
+from pydantic import ConfigDict
 
 
 class CompanyBaseSchema(APIModel):

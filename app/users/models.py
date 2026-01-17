@@ -1,9 +1,7 @@
-from sqlalchemy import ForeignKey, Integer, String, Float, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from db.base_model import BaseModel
-
 from company.models import CompanyModel
+from db.base_model import BaseModel
+from sqlalchemy import Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class UserModel(BaseModel):
@@ -26,6 +24,10 @@ class UserModel(BaseModel):
     company: Mapped["CompanyModel"] = relationship(
         "CompanyModel", back_populates="users", uselist=False
     )
+
+    posts: Mapped[list["PostModel"]] = relationship("PostModel", back_populates="user")
+
+    comments: Mapped[list["CommentsModel"]] = relationship("CommentsModel", back_populates="user")
 
 
 class AddressModel(BaseModel):

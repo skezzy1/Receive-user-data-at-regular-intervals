@@ -1,6 +1,7 @@
-from sqlalchemy import Integer, String
+from sqlalchemy import Integer, String, ForeignKey
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 from db.base_model import BaseModel
+
 
 class CompanyModel(BaseModel):
     __tablename__ = "companies"
