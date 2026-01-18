@@ -35,3 +35,4 @@ class AppSettings(BaseSettings):
     API_USERS: str = os.getenv("API_USERS")
     API_POSTS: str = os.getenv("API_POSTS")
     API_COMMENTS: str = os.getenv("API_COMMENTS")
+    CELERY_BROKER_URL: str = os.getenv("CELERY_BROKER_URL")
