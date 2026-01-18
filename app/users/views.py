@@ -1,7 +1,6 @@
 from common.pagination import CustomPage
 from dependencies import UserDep
 from fastapi import APIRouter
-# from fastapi_pagination import paginate <- Тут це не потрібно, бо repo вже повертає Page
 from users.schemas.users import UserListResponseSchema, UserResponseSchema
 
 router = APIRouter(prefix="/users", tags=["users"])
