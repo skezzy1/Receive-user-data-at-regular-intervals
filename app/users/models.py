@@ -27,8 +27,6 @@ class UserModel(BaseModel):
 
     posts: Mapped[list["PostModel"]] = relationship("PostModel", back_populates="user")
 
-    comments: Mapped[list["CommentsModel"]] = relationship("CommentsModel", back_populates="user")
-
 
 class AddressModel(BaseModel):
     __tablename__ = "address"

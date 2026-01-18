@@ -1,7 +1,7 @@
-import httpx
+import requests
+from fastapi import HTTPException
 from common.messages import POST_NOT_FOUND
 from core.config import get_settings
-from fastapi import HTTPException
 from posts.models import PostModel
 from posts.repository import PostsRepository
 from posts.schemas import PostListResponseSchema
@@ -13,19 +13,19 @@ class PostsService:
         self.repo = repo
         self.api_url = get_settings().API_POSTS
 
-    async def get_post_or_404(self, id: int) -> PostModel:
-        post = await self.repo.get_post_by_id(id)
+    def get_post_or_404(self, id: int) -> PostModel:
+        post = self.repo.get_post_by_id(id)
         if post is None:
             raise HTTPException(status_code=404, detail=POST_NOT_FOUND)
         return post
 
-    async def get_posts_list(
-            self, payload: PostListResponseSchema
-    ) -> CustomPage[PostListResponseSchema]:
-        return await self.repo.get_user_list(payload)
+    def get_posts_list(self) -> CustomPage[PostListResponseSchema]:
+        return self.repo.get_posts_list()
 
-    async def fetch_posts_from_api(self) -> list[PostModel]:
-        async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.get(self.api_url)
+    def fetch_posts_from_api(self) -> list[dict]:
+        try:
+            response = requests.get(self.api_url, timeout=10)
             response.raise_for_status()
             return response.json()
+        except requests.RequestException as e:
+            raise HTTPException(status_code=503, detail=f"External API error: {e}")

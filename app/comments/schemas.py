@@ -1,19 +1,11 @@
-from typing import Annotated
+from common.validations import IDValidation, LengthValidation
 from models import APIModel, ORMResponse
-from pydantic import Field, EmailStr, ConfigDict
-from pydantic.types import StrictStr
-
-PostID = Annotated[int, Field(ge=1)]
-CommentID = Annotated[int, Field(ge=1)]
-LengthValidation = Annotated[
-    StrictStr,
-    Field(min_length=1, max_length=225, pattern=r"^[A-Za-z]+(?:[ '-]?[A-Za-z]+)*$"),
-]
+from pydantic import EmailStr, ConfigDict, Field
 
 
 class CommentsPostBaseSchema(APIModel):
-    postId: PostID
-    id: CommentID
+    post_id: IDValidation = Field(serialization_alias="postId")
+    id: IDValidation
     name: LengthValidation
     email: EmailStr
     body: LengthValidation
@@ -38,8 +30,9 @@ class CommentsPostCreateSchema(CommentsPostBaseSchema):
 
 
 class CommentsPostResponseSchema(ORMResponse):
-    postId: int
+    post_id: IDValidation = Field(serialization_alias="postId")
     id: int
+    name: str
     email: EmailStr
     body: str
 
@@ -59,7 +52,7 @@ class CommentsPostResponseSchema(ORMResponse):
 
 
 class CommentsPostResponseListSchema(ORMResponse):
-    postId: int
+    post_id: IDValidation = Field(serialization_alias="postId")
     id: int
     name: str
     email: EmailStr

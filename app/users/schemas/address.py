@@ -8,7 +8,7 @@ from users.schemas.geo import GeoBaseSchema
 
 LengthValidation = Annotated[
     StrictStr,
-    Field(min_length=1, max_length=225, pattern=r"^[A-Za-z]+(?:[ '-]?[A-Za-z]+)*$"),
+    Field(min_length=1, max_length=255, pattern=r"^[A-Za-z0-9\s.,#-]+$"),
 ]
 
 

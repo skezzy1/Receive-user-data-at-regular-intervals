@@ -1,10 +1,10 @@
 from common.validations import IDValidation
 from models import APIModel, ORMResponse
-from pydantic import ConfigDict
+from pydantic import ConfigDict, Field
 
 
 class PostBaseSchema(APIModel):
-    userId: IDValidation
+    user_id: IDValidation = Field(serialization_alias="userId")
     id: IDValidation
     title: str
     body: str
@@ -21,7 +21,7 @@ class PostCreateSchema(PostBaseSchema):
 
 
 class PostResponseSchema(APIModel):
-    userId: IDValidation
+    user_id: IDValidation = Field(serialization_alias="userId")
     id: IDValidation
     title: str
     body: str
@@ -34,7 +34,7 @@ class PostResponseSchema(APIModel):
 
 
 class PostListResponseSchema(ORMResponse):
-    userId: IDValidation
+    user_id: IDValidation = Field(serialization_alias="userId")
     id: IDValidation
     title: str
     body: str

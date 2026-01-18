@@ -1,81 +1,100 @@
 import os
 import ssl
-from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Optional
+from contextlib import contextmanager
+from typing import Generator, Optional
 from urllib.parse import quote_plus
 
 from core.config import get_settings
 from dotenv import load_dotenv
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-
-load_dotenv(verbose=True)
-
-settings = get_settings()
-
-USER = quote_plus(settings.DATABASE_USER)
-PASSWORD = settings.DATABASE_PASSWORD
-HOST = settings.DATABASE_HOST
-PORT = settings.DATABASE_PORT
-DB_NAME = settings.DATABASE_NAME
-DRIVER = "postgresql+asyncpg"
-ENVIRONMENT = os.getenv("ENVIRONMENT")
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
 
 
-def get_ssl_context() -> Optional[ssl.SSLContext]:
-    if ENVIRONMENT == "development":
-        return None
+class PostgresDatabase:
+    def __init__(self):
+        load_dotenv(verbose=True)
+        self.settings = get_settings()
 
-    try:
-        cert_path = settings.SECRET_KEYS_DIR / "aws_secret_key.pem"
+        self.environment = os.getenv("ENVIRONMENT")
 
-        if not cert_path.exists():
-            print(f"Warning: SSL certificate not found at {cert_path}")
+        self.user = quote_plus(self.settings.DATABASE_USER)
+        self.password = self.settings.DATABASE_PASSWORD
+        self.host = self.settings.DATABASE_HOST
+        self.port = self.settings.DATABASE_PORT
+        self.db_name = self.settings.DATABASE_NAME
+
+        self.driver = "postgresql"
+
+        self.database_url = f"{self.driver}://{self.user}:{self.password}@{self.host}:{self.port}/{self.db_name}"
+
+        self.ssl_ctx = self._get_ssl_context()
+        self.connect_args = {"ssl": self.ssl_ctx} if self.ssl_ctx else {}
+
+        self.engine = create_engine(
+            self.database_url,
+            echo=False,
+            connect_args=self.connect_args,
+            pool_pre_ping=True,
+            pool_recycle=3600,
+        )
+
+        self.session_factory = sessionmaker(
+            bind=self.engine,
+            autocommit=False,
+            autoflush=False,
+        )
+
+    def _get_ssl_context(self) -> Optional[ssl.SSLContext]:
+        if self.environment == "development":
             return None
 
-        ssl_context = ssl.create_default_context(cafile=str(cert_path))
-        ssl_context.check_hostname = False
-        ssl_context.verify_mode = ssl.CERT_REQUIRED
+        try:
+            cert_path = self.settings.SECRET_KEYS_DIR / "aws_secret_key.pem"
 
-        return ssl_context
+            if not cert_path.exists():
+                print(f"Warning: SSL certificate not found at {cert_path}")
+                return None
 
-    except Exception as e:
-        print(f"Warning: Failed to create SSL context: {e}")
-        return None
+            ssl_context = ssl.create_default_context(cafile=str(cert_path))
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_REQUIRED
+
+            return ssl_context
+
+        except Exception as e:
+            print(f"Warning: Failed to create SSL context: {e}")
+            return None
+
+    def get_postgresql_db(self) -> Generator[Session, None, None]:
+        """
+        Provide a synchronous database session.
+        """
+        session = self.session_factory()
+        try:
+            yield session
+        except Exception:
+            session.rollback()
+            raise
+        finally:
+            session.close()
+
+    @contextmanager
+    def get_postgresql_db_contextmanager(self) -> Generator[Session, None, None]:
+        """
+        Provide a synchronous database session using a context manager.
+        """
+        session = self.session_factory()
+        try:
+            yield session
+        except Exception:
+            session.rollback()
+            raise
+        finally:
+            session.close()
 
 
-ssl_ctx = get_ssl_context()
-connect_args = {"ssl": ssl_ctx} if ssl_ctx else {}
+db_manager = PostgresDatabase()
 
-POSTGRESQL_DATABASE_URL = f"{DRIVER}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB_NAME}"
-
-postgresql_engine = create_async_engine(
-    POSTGRESQL_DATABASE_URL,
-    echo=False,
-    future=True,
-    connect_args=connect_args,
-    pool_pre_ping=True,
-    pool_recycle=3600,
-)
-
-AsyncSessionLocal = async_sessionmaker(
-    bind=postgresql_engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
-
-
-async def get_postgresql_db() -> AsyncGenerator[AsyncSession, None]:
-    """
-    Provide an asynchronous database session.
-    """
-    async with AsyncSessionLocal() as session:
-        yield session
-
-
-@asynccontextmanager
-async def get_postgresql_db_contextmanager() -> AsyncGenerator[AsyncSession, None]:
-    """
-    Provide an asynchronous database session using a context manager.
-    """
-    async with AsyncSessionLocal() as session:
-        yield session
+get_postgresql_db = db_manager.get_postgresql_db
+get_postgresql_db_contextmanager = db_manager.get_postgresql_db_contextmanager
+postgresql_engine = db_manager.engine

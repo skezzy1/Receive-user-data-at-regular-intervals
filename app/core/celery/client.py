@@ -32,8 +32,16 @@ class CeleryManager:
     def _setup_schedule(self):
         self._app.conf.beat_schedule = {
             "fetch-users": {
-                "task": "core.tasks.fetch_users_task",
+                "task": "core.celery.tasks.fetch_users_task",
                 "schedule": crontab(minute=0, hour="*"),
+            },
+            "fetch-posts": {
+                "task": "core.celery.tasks.fetch_posts_task",
+                "schedule": crontab(minute=5, hour="*"),
+            },
+            "fetch-comments": {
+                "task": "core.celery.tasks.fetch_comments_task",
+                "schedule": crontab(minute=10, hour="*"),
             },
         }
 

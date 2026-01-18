@@ -1,10 +1,24 @@
 from celery import shared_task
-import logging
-
-logger = logging.getLogger(__name__)
+from db.session_postgresql import get_postgresql_db_contextmanager
+from core.importer.client import UserImporter, PostImporter, CommentImporter
 
 
 @shared_task
 def fetch_users_task():
-    logger.info("Executing fetch_users_task...")
-    return "Users fetched successfully"
+    with get_postgresql_db_contextmanager() as session:
+        importer = UserImporter(session)
+        importer.run()
+
+
+@shared_task
+def fetch_posts_task():
+    with get_postgresql_db_contextmanager() as session:
+        importer = PostImporter(session)
+        importer.run()
+
+
+@shared_task
+def fetch_comments_task():
+    with get_postgresql_db_contextmanager() as session:
+        importer = CommentImporter(session)
+        importer.run()

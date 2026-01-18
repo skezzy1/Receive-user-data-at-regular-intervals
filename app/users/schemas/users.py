@@ -25,10 +25,10 @@ class UserResponseSchema(ORMResponse):
     name: str
     username: str
     email: EmailStr
-    address: dict
+    address: AddressBaseSchema
     phone: str
     website: str
-    company: dict
+    company: CompanyBaseSchema
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -63,10 +63,10 @@ class UserListResponseSchema(ORMResponse):
     name: str
     username: str
     email: EmailStr
-    address: dict
+    address: AddressBaseSchema
     phone: str
     website: str
-    company: dict
+    company: CompanyBaseSchema
 
     model_config = ConfigDict(
         json_schema_extra={

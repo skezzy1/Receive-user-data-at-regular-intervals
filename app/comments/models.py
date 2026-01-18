@@ -7,11 +7,9 @@ class CommentsModel(BaseModel):
     __tablename__ = "comments"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    title: Mapped[str] = mapped_column(String(255), nullable=False)
-    body: Mapped[str] = mapped_column(String(255), nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    body: Mapped[str] = mapped_column(String(1025), nullable=False)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    user: Mapped["UserModel"] = relationship("UserModel", back_populates="comments")
-
-    post_id: Mapped[int] = mapped_column(ForeignKey("posts.id"), nullable=False)
+    post_id: Mapped[int] = mapped_column("postId", ForeignKey("posts.id"), nullable=False)
     post: Mapped["PostModel"] = relationship("PostModel", back_populates="comments")
