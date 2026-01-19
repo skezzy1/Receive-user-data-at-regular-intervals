@@ -1,11 +1,11 @@
 from functools import lru_cache
 from typing import Type
 
-from app.core.settings.app import AppSettings
-from app.core.settings.base import AppEnvTypes, BaseAppSettings
-from app.core.settings.development import DevelopmentAppSettings
-from app.core.settings.production import ProductionAppSettings
-from app.core.settings.qa import QAAppSettings
+from core.settings.app import AppSettings
+from core.settings.base import AppEnvTypes, BaseAppSettings
+from core.settings.development import DevelopmentAppSettings
+from core.settings.production import ProductionAppSettings
+from core.settings.qa import QAAppSettings
 
 environments: dict[AppEnvTypes, Type[AppSettings]] = {
     AppEnvTypes.development: DevelopmentAppSettings,

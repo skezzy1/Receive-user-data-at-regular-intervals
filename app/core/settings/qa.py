@@ -1,7 +1,7 @@
 import os
 from typing import ClassVar
 
-from app.core.settings.app import AppSettings
+from core.settings.app import AppSettings
 
 
 class QAAppSettings(AppSettings):

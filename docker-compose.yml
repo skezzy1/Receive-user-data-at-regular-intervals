@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:17.6
-    container_name: database
+    container_name: receive_database
     restart: unless-stopped
     env_file:
       - .env
@@ -16,16 +16,32 @@ services:
       retries: 5
       start_period: 5s
     networks:
-      - net
+      - receive_net
 
-  redis:
-    image: redis:7-alpine
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: receive_rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - receive_net
 
   backend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: backend
+    container_name: receive_backend
     restart: unless-stopped
     command: bash -c "/commands/run_migrations.sh && /commands/run_web_server_dev.sh"
     env_file:
@@ -35,17 +51,55 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     volumes:
       - ./app:/app
     networks:
-      - net
+      - receive_net
 
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: receive_worker
+    restart: unless-stopped
+    command: celery -A core.celery.client worker --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./app:/app
+    networks:
+      - receive_net
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: receive_beat
+    restart: unless-stopped
+    command: celery -A core.celery.client beat --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./app:/app
+    networks:
+      - receive_net
 
 volumes:
   pg_data:
-    name: pg_data
-
+    name: receive_pg_data
 
 networks:
-  net:
+  receive_net:
     driver: bridge

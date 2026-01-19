@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 
-from app.api_router import api_router
+from api_router import api_router
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent

@@ -1,22 +1,30 @@
-from typing import TypeVar, Type, Callable, Annotated
+from typing import Annotated, Callable, Type, TypeVar
 
 from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
-from app.core.config import get_settings
-from app.db.session_postgresql import get_postgresql_db
+from db.session_postgresql import get_postgresql_db
 
+from comments.services import CommentsService
+from comments.repository import CommentsRepository
+from posts.repository import PostsRepository
+from posts.services import PostsService
+from users.repository import UserRepository
+from users.services import UserService
 
 S = TypeVar("S")
+R = TypeVar("R")
 
 
-def service(cls: Type[S]) -> Callable[[AsyncSession], S]:
-    def _dep(db: AsyncSession = Depends(get_postgresql_db)) -> S:
-        settings = get_settings()
-        return cls(db)
+def service(cls: Type[S], repo_cls: Type[R]) -> Callable[[Session], S]:
+    def _dep(db: Session = Depends(get_postgresql_db)) -> S:
+        repo = repo_cls(db)
+        return cls(repo)
 
     return _dep
 
 
 # Aliases
-#UserDep = Annotated[UserService, Depends(service(UserService))]
+UserDep = Annotated[UserService, Depends(service(UserService, UserRepository))]
+PostDep = Annotated[PostsService, Depends(service(PostsService, PostsRepository))]
+CommentsDep = Annotated[CommentsService, Depends(service(CommentsService, CommentsRepository))]
